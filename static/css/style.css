@@ -2,7 +2,7 @@
 
 /* Custom styling for R6 Siege theme */
 body {
-    background-color: #111;
+    background-color: #000;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #f5f5f5; /* Light gray for better readability */
 }
@@ -141,4 +141,39 @@ footer a:hover {
     .jumbotron h1 {
         font-size: 2rem;
     }
+
+/* Ensure all text has appropriate contrast against dark backgrounds */
+body, input, textarea, select, .dropdown-menu, .modal-content {
+    color: #f5f5f5 !important; /* Force light text color everywhere */
+}
+
+/* Ensure all alert text is visible */
+.alert {
+    color: #f5f5f5 !important;
+}
+
+/* Make sure form inputs have visible text */
+.form-control::placeholder {
+    color: #aaa !important; /* Lighter gray for placeholders */
+}
+
+/* Ensure dropdown menus have visible text */
+.dropdown-menu {
+    background-color: #333 !important;
+}
+.dropdown-item {
+    color: #f5f5f5 !important;
+}
+.dropdown-item:hover {
+    background-color: #444 !important;
+}
+
+/* Fix any Bootstrap components that might override your colors */
+.btn, .card, .modal, .toast, .popover, .tooltip {
+    color: #f5f5f5 !important;
+}
+
+/* Fix text in any tables */
+table, th, td {
+    color: #f5f5f5 !important;
 }
