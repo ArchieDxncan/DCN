@@ -6,6 +6,9 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.utils import secure_filename
 import os
 from datetime import datetime
+import markdown
+import bleach
+from bleach.sanitizer import ALLOWED_TAGS, ALLOWED_ATTRIBUTES
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
@@ -18,6 +21,11 @@ os.makedirs(downloads_dir, exist_ok=True)
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
+
+# Configure allowed HTML tags for descriptions
+ALLOWED_TAGS.extend(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'ul', 'ol', 'li', 'code', 'pre', 'hr', 'br'])
+ALLOWED_ATTRIBUTES['a'] = ['href', 'title', 'class']
+ALLOWED_ATTRIBUTES['img'] = ['src', 'alt', 'title', 'class']
 
 # Database models
 class User(UserMixin, db.Model):
@@ -36,6 +44,11 @@ class Macro(db.Model):
     file_path = db.Column(db.String(200), nullable=False)
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     purchases = db.relationship('Purchase', backref='product', lazy=True)
+    
+    def format_description(self):
+        """Convert Markdown to HTML and sanitize it"""
+        html = markdown.markdown(self.description)
+        return bleach.clean(html, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES, strip=True)
 
 class Purchase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -116,7 +129,6 @@ def dashboard():
     purchases = Purchase.query.filter_by(user_id=current_user.id).all()
     return render_template('dashboard.html', purchases=purchases)
 
-# Add these to app.py
 @app.route('/purchase/<int:macro_id>', methods=['GET', 'POST'])
 @login_required
 def purchase(macro_id):
@@ -143,7 +155,6 @@ def purchase(macro_id):
     flash('Purchase successful!')
     return redirect(url_for('dashboard'))
 
-# Add a new route for PayPal success
 @app.route('/paypal_success/<int:macro_id>')
 @login_required
 def paypal_success(macro_id):
@@ -177,9 +188,6 @@ def download_macro(purchase_id):
     downloads_dir = os.path.join(app.root_path, 'static', 'downloads')
     filename = os.path.basename(file_path)
     
-    # In a real app, you'd want to check if the file exists
-    # and handle any errors appropriately
-    
     # Send the file to the user
     return send_from_directory(
         directory=downloads_dir,
@@ -188,16 +196,27 @@ def download_macro(purchase_id):
         download_name=f"{purchase.product.name}.razer"
     )
 
-# Admin routes (to add macros)
+# Updated/Added Admin routes
 @app.route('/admin')
 @login_required
 def admin():
     # Simple admin check - in a real app, use proper role-based access
     if current_user.username != "MiniDuncan":
+        flash('Unauthorized access')
         return redirect(url_for('home'))
     
     macros = Macro.query.all()
-    return render_template('admin.html', macros=macros)
+    
+    # Get statistics
+    total_users = User.query.count()
+    total_sales = Purchase.query.count()
+    total_revenue = db.session.query(db.func.sum(Macro.price)).join(Purchase).scalar() or 0
+    
+    return render_template('admin.html', 
+                          macros=macros, 
+                          total_users=total_users,
+                          total_sales=total_sales,
+                          total_revenue=total_revenue)
 
 @app.route('/admin/add_macro', methods=['GET', 'POST'])
 @login_required
@@ -235,6 +254,90 @@ def add_macro():
             return redirect(url_for('admin'))
     
     return render_template('add_macro.html')
+
+@app.route('/admin/edit_macro/<int:macro_id>', methods=['GET', 'POST'])
+@login_required
+def edit_macro(macro_id):
+    # Check if the current user is MiniDuncan
+    if current_user.username != "MiniDuncan":
+        flash('Unauthorized access')
+        return redirect(url_for('home'))
+        
+    macro = Macro.query.get_or_404(macro_id)
+    
+    if request.method == 'POST':
+        macro.name = request.form['name']
+        macro.description = request.form['description']
+        macro.price = float(request.form['price'])
+        
+        # Handle file upload if a new file is provided
+        if 'macro_file' in request.files and request.files['macro_file'].filename:
+            file = request.files['macro_file']
+            filename = secure_filename(file.filename)
+            file_path = os.path.join('static', 'downloads', filename)
+            
+            # Delete old file if needed
+            old_filename = os.path.basename(macro.file_path)
+            old_file_path = os.path.join(app.root_path, 'static', 'downloads', old_filename)
+            if os.path.exists(old_file_path) and old_filename != filename:
+                try:
+                    os.remove(old_file_path)
+                except:
+                    pass
+                
+            file.save(os.path.join(app.root_path, file_path))
+            macro.file_path = file_path
+        
+        db.session.commit()
+        flash('Macro updated successfully!')
+        return redirect(url_for('admin'))
+    
+    return render_template('edit_macro.html', macro=macro)
+
+@app.route('/admin/delete_macro/<int:macro_id>', methods=['POST'])
+@login_required
+def delete_macro(macro_id):
+    # Check if the current user is MiniDuncan
+    if current_user.username != "MiniDuncan":
+        flash('Unauthorized access')
+        return redirect(url_for('home'))
+        
+    macro = Macro.query.get_or_404(macro_id)
+    
+    # Delete associated file
+    try:
+        filename = os.path.basename(macro.file_path)
+        file_path = os.path.join(app.root_path, 'static', 'downloads', filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+    except:
+        pass
+    
+    # Delete associated purchases
+    Purchase.query.filter_by(macro_id=macro_id).delete()
+    
+    # Delete the macro
+    db.session.delete(macro)
+    db.session.commit()
+    flash('Macro deleted successfully!')
+    return redirect(url_for('admin'))
+
+@app.route('/admin/sales')
+@login_required
+def admin_sales():
+    # Check if the current user is MiniDuncan
+    if current_user.username != "MiniDuncan":
+        flash('Unauthorized access')
+        return redirect(url_for('home'))
+    
+    purchases = Purchase.query.all()
+    return render_template('admin_sales.html', purchases=purchases)
+
+# Register a template filter for rendering Markdown
+@app.template_filter('markdown')
+def convert_markdown(text):
+    html = markdown.markdown(text)
+    return bleach.clean(html, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES, strip=True)
 
 if __name__ == '__main__':
     with app.app_context():

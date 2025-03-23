@@ -4,14 +4,47 @@
 {% block title %}Admin Panel{% endblock %}
 
 {% block content %}
+<h1 class="mb-4">Admin Panel</h1>
+
+<!-- Admin Dashboard Stats -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-dark border-danger mb-3">
+            <div class="card-body text-center">
+                <h5 class="card-title">Total Users</h5>
+                <p class="card-text display-4 text-danger">{{ total_users }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-dark border-danger mb-3">
+            <div class="card-body text-center">
+                <h5 class="card-title">Total Sales</h5>
+                <p class="card-text display-4 text-danger">{{ total_sales }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-dark border-danger mb-3">
+            <div class="card-body text-center">
+                <h5 class="card-title">Total Revenue</h5>
+                <p class="card-text display-4 text-danger">${{ "%.2f"|format(total_revenue) }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Admin Panel</h1>
-    <a href="{{ url_for('add_macro') }}" class="btn btn-outline-danger">Add New Macro</a>
+    <h2>Manage Macros</h2>
+    <div>
+        <a href="{{ url_for('admin_sales') }}" class="btn btn-outline-light me-2">View Sales</a>
+        <a href="{{ url_for('add_macro') }}" class="btn btn-outline-danger">Add New Macro</a>
+    </div>
 </div>
 
 <div class="card bg-dark border-secondary">
     <div class="card-header bg-gradient-dark">
-        <h2 class="text-danger h5 mb-0">Manage Macros</h2>
+        <h3 class="text-danger h5 mb-0">Available Macros</h3>
     </div>
     <div class="card-body">
         {% if macros %}
@@ -22,6 +55,7 @@
                             <th>ID</th>
                             <th>Name</th>
                             <th>Price</th>
+                            <th>Sales</th>
                             <th>Date Added</th>
                             <th>Actions</th>
                         </tr>
@@ -32,11 +66,35 @@
                                 <td>{{ macro.id }}</td>
                                 <td>{{ macro.name }}</td>
                                 <td>${{ "%.2f"|format(macro.price) }}</td>
+                                <td>{{ macro.purchases|length }}</td>
                                 <td>{{ macro.date_added.strftime('%B %d, %Y') }}</td>
                                 <td>
                                     <div class="btn-group" role="group">
-                                        <a href="#" class="btn btn-sm btn-outline-light">Edit</a>
-                                        <a href="#" class="btn btn-sm btn-outline-danger">Delete</a>
+                                        <a href="{{ url_for('macro_detail', macro_id=macro.id) }}" class="btn btn-sm btn-outline-light">View</a>
+                                        <a href="{{ url_for('edit_macro', macro_id=macro.id) }}" class="btn btn-sm btn-outline-warning">Edit</a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ macro.id }}">Delete</button>
+                                    </div>
+                                    
+                                    <!-- Delete Confirmation Modal -->
+                                    <div class="modal fade" id="deleteModal{{ macro.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ macro.id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content bg-dark text-light border-secondary">
+                                                <div class="modal-header border-secondary">
+                                                    <h5 class="modal-title text-danger" id="deleteModalLabel{{ macro.id }}">Confirm Deletion</h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Are you sure you want to delete <strong>{{ macro.name }}</strong>?</p>
+                                                    <p class="text-danger">This action cannot be undone and will also delete any associated purchases and files.</p>
+                                                </div>
+                                                <div class="modal-footer border-secondary">
+                                                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                                                    <form action="{{ url_for('delete_macro', macro_id=macro.id) }}" method="POST">
+                                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>

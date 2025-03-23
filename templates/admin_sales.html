@@ -1,0 +1,132 @@
+<!-- templates/admin_sales.html -->
+{% extends 'layout.html' %}
+
+{% block title %}Sales Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Sales Dashboard</h1>
+    <a href="{{ url_for('admin') }}" class="btn btn-outline-danger">Back to Admin</a>
+</div>
+
+<div class="card bg-dark border-secondary mb-4">
+    <div class="card-header bg-gradient-dark">
+        <h2 class="text-danger h5 mb-0">Purchase History</h2>
+    </div>
+    <div class="card-body">
+        {% if purchases %}
+            <div class="table-responsive">
+                <table class="table table-dark table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Macro</th>
+                            <th>Price</th>
+                            <th>Purchase Date</th>
+                            <th>Downloads</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for purchase in purchases %}
+                            <tr>
+                                <td>{{ purchase.id }}</td>
+                                <td>{{ purchase.customer.username }}</td>
+                                <td>{{ purchase.product.name }}</td>
+                                <td>${{ "%.2f"|format(purchase.product.price) }}</td>
+                                <td>{{ purchase.purchase_date.strftime('%B %d, %Y, %H:%M') }}</td>
+                                <td>{{ purchase.download_count }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-center">No sales recorded yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card bg-dark border-secondary mb-4">
+            <div class="card-header bg-gradient-dark">
+                <h3 class="text-danger h5 mb-0">Top Selling Macros</h3>
+            </div>
+            <div class="card-body">
+                {% set top_macros = {} %}
+                {% for purchase in purchases %}
+                    {% if purchase.product.name in top_macros %}
+                        {% set _ = top_macros.update({purchase.product.name: top_macros[purchase.product.name] + 1}) %}
+                    {% else %}
+                        {% set _ = top_macros.update({purchase.product.name: 1}) %}
+                    {% endif %}
+                {% endfor %}
+                
+                {% if top_macros %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Macro</th>
+                                    <th>Sales</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for macro_name, count in top_macros|dictsort(by='value', reverse=true) %}
+                                    <tr>
+                                        <td>{{ macro_name }}</td>
+                                        <td>{{ count }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-center">No sales data available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card bg-dark border-secondary mb-4">
+            <div class="card-header bg-gradient-dark">
+                <h3 class="text-danger h5 mb-0">Most Active Users</h3>
+            </div>
+            <div class="card-body">
+                {% set active_users = {} %}
+                {% for purchase in purchases %}
+                    {% if purchase.customer.username in active_users %}
+                        {% set _ = active_users.update({purchase.customer.username: active_users[purchase.customer.username] + 1}) %}
+                    {% else %}
+                        {% set _ = active_users.update({purchase.customer.username: 1}) %}
+                    {% endif %}
+                {% endfor %}
+                
+                {% if active_users %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Purchases</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for username, count in active_users|dictsort(by='value', reverse=true) %}
+                                    <tr>
+                                        <td>{{ username }}</td>
+                                        <td>{{ count }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-center">No user data available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

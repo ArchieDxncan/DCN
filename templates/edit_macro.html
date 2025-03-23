@@ -1,0 +1,76 @@
+<!-- templates/edit_macro.html -->
+{% extends 'layout.html' %}
+
+{% block title %}Edit Macro{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card bg-dark border-secondary">
+            <div class="card-header bg-gradient-dark">
+                <h2 class="text-danger">Edit Macro</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Macro Name</label>
+                        <input type="text" class="form-control bg-dark text-light border-secondary" id="name" name="name" value="{{ macro.name }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description (Markdown Supported)</label>
+                        <textarea class="form-control bg-dark text-light border-secondary" id="description" name="description" rows="10" required>{{ macro.description }}</textarea>
+                        <small class="text-muted">You can use Markdown for formatting. For example: **bold**, *italic*, - bullet points, etc.</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="price" class="form-label">Price (GBP)</label>
+                        <input type="number" step="0.01" min="0" class="form-control bg-dark text-light border-secondary" id="price" name="price" value="{{ macro.price }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="macro_file" class="form-label">Macro File</label>
+                        <input type="file" class="form-control bg-dark text-light border-secondary" id="macro_file" name="macro_file">
+                        <small class="text-muted">Current file: {{ macro.file_path.split('/')[-1] }} (Leave empty to keep current file)</small>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4>Preview Description</h4>
+                        <div class="card bg-dark border-secondary p-3">
+                            <div id="preview" class="description-preview">{{ macro.description|markdown|safe }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('admin') }}" class="btn btn-outline-light">Cancel</a>
+                        <button type="submit" class="btn btn-warning">Update Macro</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const descriptionTextarea = document.getElementById('description');
+    const previewDiv = document.getElementById('preview');
+    
+    // Update the preview when description changes
+    descriptionTextarea.addEventListener('input', function() {
+        // Send the markdown content to the server for conversion
+        fetch('/preview-markdown', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'markdown=' + encodeURIComponent(descriptionTextarea.value)
+        })
+        .then(response => response.text())
+        .then(html => {
+            previewDiv.innerHTML = html;
+        });
+    });
+});
+</script>
+{% endblock %}
