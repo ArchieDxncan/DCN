@@ -1,0 +1,66 @@
+<!-- templates/dashboard.html -->
+{% extends 'layout.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Your Dashboard</h1>
+
+<div class="row">
+    <div class="col-lg-4 mb-4">
+        <div class="card bg-dark border-secondary h-100">
+            <div class="card-header bg-gradient-dark">
+                <h2 class="text-danger h5 mb-0">Account Info</h2>
+            </div>
+            <div class="card-body">
+                <p><strong>Username:</strong> {{ current_user.username }}</p>
+                <p><strong>Email:</strong> {{ current_user.email }}</p>
+                <p><strong>Member since:</strong> {{ current_user.date_registered.strftime('%B %d, %Y') }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <div class="card bg-dark border-secondary">
+            <div class="card-header bg-gradient-dark">
+                <h2 class="text-danger h5 mb-0">Your Purchases</h2>
+            </div>
+            <div class="card-body">
+                {% if purchases %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Macro</th>
+                                    <th>Purchase Date</th>
+                                    <th>Downloads</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for purchase in purchases %}
+                                    <tr>
+                                        <td>{{ purchase.product.name }}</td>
+                                        <td>{{ purchase.purchase_date.strftime('%B %d, %Y') }}</td>
+                                        <td>{{ purchase.download_count }}</td>
+                                        <td>
+                                            <a href="{{ url_for('download_macro', purchase_id=purchase.id) }}" class="btn btn-sm btn-outline-danger">
+                                                Download
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center p-4">
+                        <p>You haven't purchased any macros yet.</p>
+                        <a href="{{ url_for('home') }}" class="btn btn-outline-danger">Browse Macros</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,144 @@
+/* static/css/style.css */
+
+/* Custom styling for R6 Siege theme */
+body {
+    background-color: #111;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #f5f5f5; /* Light gray for better readability */
+}
+
+/* Ensure all <p> elements have a readable color */
+p {
+    color: #f5f5f5; /* Light gray for paragraphs */
+}
+
+/* Background gradient effects */
+.bg-gradient-dark {
+    background: linear-gradient(to right, #1a1a1a, #222);
+}
+
+/* Card hover effects */
+.card {
+    transition: transform 0.3s, box-shadow 0.3s;
+    color: #f5f5f5; /* Light gray text for cards */
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Custom button styling */
+.btn-danger {
+    background-color: #e52222;
+    border-color: #e52222;
+    color: #fff; /* White text for buttons */
+}
+
+.btn-danger:hover {
+    background-color: #c51818;
+    border-color: #c51818;
+}
+
+.btn-outline-danger {
+    color: #e52222;
+    border-color: #e52222;
+}
+
+.btn-outline-danger:hover {
+    background-color: #e52222;
+    border-color: #e52222;
+    color: #fff; /* White text on hover */
+}
+
+/* Custom text colors */
+.text-danger {
+    color: #e52222 !important; /* Red for emphasis */
+}
+
+.text-light {
+    color: #f5f5f5 !important; /* Light gray for better contrast */
+}
+
+/* Navbar styling */
+.navbar {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: #f5f5f5; /* Light gray for navbar brand */
+}
+
+.navbar-nav .nav-link {
+    color: #f5f5f5; /* Light gray for navbar links */
+}
+
+.navbar-nav .nav-link:hover {
+    color: #e52222; /* Red on hover for better interaction */
+}
+
+/* Jumbotron styling */
+.jumbotron {
+    background: linear-gradient(135deg, #222, #111);
+    box-shadow: inset 0 0 100px rgba(229, 34, 34, 0.1);
+    border: 1px solid #333;
+    color: #f5f5f5; /* Light gray text for jumbotron */
+}
+
+/* Table styling */
+.table-dark {
+    background-color: #1a1a1a;
+    color: #f5f5f5; /* Light gray text for tables */
+}
+
+.table-dark thead {
+    background-color: #222;
+    color: #f5f5f5; /* Light gray text for table headers */
+}
+
+/* Form control styling */
+.form-control {
+    background-color: #1a1a1a;
+    color: #f5f5f5; /* Light gray text for form inputs */
+    border: 1px solid #444;
+}
+
+.form-control:focus {
+    background-color: #222;
+    color: #fff; /* White text when focused */
+    border-color: #e52222;
+    box-shadow: 0 0 0 0.25rem rgba(229, 34, 34, 0.25);
+}
+
+/* Custom alert styling */
+.alert {
+    background-color: #222;
+    color: #f5f5f5; /* Light gray text for alerts */
+    border: 1px solid #333;
+}
+
+/* Footer styling */
+footer {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    border-top: 1px solid #333;
+    color: #f5f5f5; /* Light gray text for footer */
+}
+
+footer a {
+    color: #e52222; /* Red for footer links */
+}
+
+footer a:hover {
+    color: #c51818; /* Darker red on hover */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .jumbotron h1 {
+        font-size: 2rem;
+    }
+}

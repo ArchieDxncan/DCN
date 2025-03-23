@@ -1,0 +1,65 @@
+<!-- templates/home.html -->
+{% extends 'layout.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="jumbotron bg-gradient-dark text-center p-5 rounded mb-4">
+    <h1 class="display-4">Pro-Level <span class="text-danger">Rainbow Six</span> Macros</h1>
+    <p class="lead">Precision macros for Razer Synapse to elevate your gameplay</p>
+    <hr class="my-4">
+    <p>Designed specifically for Rainbow Six Siege to enhance your performance while staying within fair play boundaries.</p>
+    <a class="btn btn-danger btn-lg" href="#macros">Browse Macros</a>
+</div>
+
+<section id="macros" class="my-5">
+    <h2 class="text-center mb-4">Available Macros</h2>
+    
+    <div class="row">
+        {% if macros %}
+            {% for macro in macros %}
+                <div class="col-md-4 mb-4">
+                    <div class="card bg-dark border-secondary h-100">
+                        <div class="card-header bg-gradient-dark text-danger">
+                            <h5 class="card-title">{{ macro.name }}</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">{{ macro.description[:100] }}{% if macro.description|length > 100 %}...{% endif %}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-danger">${{ "%.2f"|format(macro.price) }}</span>
+                                <a href="{{ url_for('macro_detail', macro_id=macro.id) }}" class="btn btn-outline-light btn-sm">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12 text-center">
+                <p>No macros available yet. Check back soon!</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<section class="my-5">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h2>Why Choose Our Macros?</h2>
+            <ul class="list-group list-group-flush bg-transparent">
+                <li class="list-group-item bg-transparent text-light border-secondary">Optimized for Rainbow Six Siege mechanics</li>
+                <li class="list-group-item bg-transparent text-light border-secondary">Seamless Razer Synapse integration</li>
+                <li class="list-group-item bg-transparent text-light border-secondary">Easy installation with step-by-step guides</li>
+                <li class="list-group-item bg-transparent text-light border-secondary">Regular updates to match game patches</li>
+                <li class="list-group-item bg-transparent text-light border-secondary">Designed by experienced players</li>
+            </ul>
+        </div>
+        <div class="col-md-6 text-center">
+            <div class="p-4 bg-black rounded">
+                <h3 class="text-danger mb-3">Ready to upgrade your gameplay?</h3>
+                <p class="mb-4">Create an account to purchase and download our Razer Synapse macros.</p>
+                <a href="{{ url_for('register') }}" class="btn btn-danger">Get Started</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
