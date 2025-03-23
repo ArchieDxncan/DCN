@@ -23,7 +23,10 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
 # Configure allowed HTML tags for descriptions
-ALLOWED_TAGS.extend(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'ul', 'ol', 'li', 'code', 'pre', 'hr', 'br'])
+ALLOWED_TAGS = set(ALLOWED_TAGS)
+ALLOWED_TAGS.update(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'ul', 'ol', 'li', 'code', 'pre', 'hr', 'br'])
+
+ALLOWED_ATTRIBUTES = dict(ALLOWED_ATTRIBUTES)
 ALLOWED_ATTRIBUTES['a'] = ['href', 'title', 'class']
 ALLOWED_ATTRIBUTES['img'] = ['src', 'alt', 'title', 'class']
 
