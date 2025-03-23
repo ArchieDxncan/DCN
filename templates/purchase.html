@@ -1,0 +1,62 @@
+<!-- templates/purchase.html -->
+{% extends 'layout.html' %}
+
+{% block title %}Purchase {{ macro.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card bg-dark border-secondary">
+            <div class="card-header bg-gradient-dark">
+                <h2 class="text-danger">Checkout</h2>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h3>Purchase Summary</h3>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>{{ macro.name }}</span>
+                        <span>${{ "%.2f"|format(macro.price) }}</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong>Total</strong>
+                        <strong>${{ "%.2f"|format(macro.price) }}</strong>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <!-- PayPal button -->
+                    <div id="paypal-button-container" class="my-4"></div>
+                    
+                    <p class="text-muted">
+                        Note: After payment, you'll be redirected to your dashboard where you can download your purchase.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PayPal SDK -->
+<script src="https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID&currency=USD"></script>
+<script>
+    paypal.Buttons({
+        createOrder: function(data, actions) {
+            return actions.order.create({
+                purchase_units: [{
+                    amount: {
+                        value: '{{ macro.price }}'
+                    },
+                    description: '{{ macro.name }}'
+                }]
+            });
+        },
+        onApprove: function(data, actions) {
+            return actions.order.capture().then(function(details) {
+                // Redirect to success page
+                window.location.href = "{{ url_for('paypal_success', macro_id=macro.id) }}";
+            });
+        }
+    }).render('#paypal-button-container');
+</script>
+{% endblock %}

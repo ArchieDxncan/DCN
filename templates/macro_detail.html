@@ -32,7 +32,7 @@
                 
                 <div class="text-center">
                     {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('purchase', macro_id=macro.id) }}" class="btn btn-danger btn-lg">Purchase Now</a>
+                        <a href="{{ url_for('purchase', macro_id=macro.id) }}" class="btn btn-danger btn-lg">Purchase with PayPal</a>
                     {% else %}
                         <p class="mb-3">You must be logged in to purchase this macro.</p>
                         <a href="{{ url_for('login') }}" class="btn btn-outline-light me-2">Login</a>

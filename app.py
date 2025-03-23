@@ -1,8 +1,9 @@
 # app.py
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.utils import secure_filename
 import os
 from datetime import datetime
 
@@ -10,6 +11,9 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///macros.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+downloads_dir = os.path.join(app.root_path, 'static', 'downloads')
+os.makedirs(downloads_dir, exist_ok=True)
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
@@ -112,6 +116,7 @@ def dashboard():
     purchases = Purchase.query.filter_by(user_id=current_user.id).all()
     return render_template('dashboard.html', purchases=purchases)
 
+# Add these to app.py
 @app.route('/purchase/<int:macro_id>', methods=['GET', 'POST'])
 @login_required
 def purchase(macro_id):
@@ -123,14 +128,32 @@ def purchase(macro_id):
         flash('You already own this macro!')
         return redirect(url_for('dashboard'))
     
-    # Here you would implement payment processing (e.g., Stripe)
-    # For simplicity, we'll just create a purchase record
+    if request.method == 'GET':
+        # Show payment page with PayPal button
+        return render_template('purchase.html', macro=macro)
+    
+    # For POST request (PayPal IPN or success)
+    # In a real app, you'd verify the PayPal payment here
+    # For this demo, we'll assume payment is successful
     
     new_purchase = Purchase(user_id=current_user.id, macro_id=macro_id)
     db.session.add(new_purchase)
     db.session.commit()
     
     flash('Purchase successful!')
+    return redirect(url_for('dashboard'))
+
+# Add a new route for PayPal success
+@app.route('/paypal_success/<int:macro_id>')
+@login_required
+def paypal_success(macro_id):
+    # Create the purchase record
+    macro = Macro.query.get_or_404(macro_id)
+    new_purchase = Purchase(user_id=current_user.id, macro_id=macro_id)
+    db.session.add(new_purchase)
+    db.session.commit()
+    
+    flash('Payment successful! You can now download your macro.')
     return redirect(url_for('dashboard'))
 
 @app.route('/download/<int:purchase_id>')
@@ -147,17 +170,30 @@ def download_macro(purchase_id):
     purchase.download_count += 1
     db.session.commit()
     
-    # In a real app, you would return the file here
-    # For now, we'll just redirect to dashboard
-    flash('Download started!')
-    return redirect(url_for('dashboard'))
+    # Get the macro file path
+    file_path = purchase.product.file_path
+    
+    # For security, let's make sure we're only serving files from a specific directory
+    downloads_dir = os.path.join(app.root_path, 'static', 'downloads')
+    filename = os.path.basename(file_path)
+    
+    # In a real app, you'd want to check if the file exists
+    # and handle any errors appropriately
+    
+    # Send the file to the user
+    return send_from_directory(
+        directory=downloads_dir,
+        path=filename,
+        as_attachment=True,
+        download_name=f"{purchase.product.name}.razer"
+    )
 
 # Admin routes (to add macros)
 @app.route('/admin')
 @login_required
 def admin():
     # Simple admin check - in a real app, use proper role-based access
-    if current_user.id != 1:  # Assuming user ID 1 is admin
+    if current_user.username != "MiniDuncan":
         return redirect(url_for('home'))
     
     macros = Macro.query.all()
@@ -166,22 +202,37 @@ def admin():
 @app.route('/admin/add_macro', methods=['GET', 'POST'])
 @login_required
 def add_macro():
-    # Simple admin check
-    if current_user.id != 1:
+    # Check if the current user is MiniDuncan
+    if current_user.username != "MiniDuncan":
+        flash('Unauthorized access')
         return redirect(url_for('home'))
     
     if request.method == 'POST':
         name = request.form['name']
         description = request.form['description']
         price = float(request.form['price'])
-        file_path = request.form['file_path']  # In a real app, handle file uploads
         
-        new_macro = Macro(name=name, description=description, price=price, file_path=file_path)
-        db.session.add(new_macro)
-        db.session.commit()
-        
-        flash('Macro added successfully!')
-        return redirect(url_for('admin'))
+        # Handle file upload
+        if 'macro_file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+            
+        file = request.files['macro_file']
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+            
+        if file:
+            filename = secure_filename(file.filename)
+            file_path = os.path.join('static', 'downloads', filename)
+            file.save(os.path.join(app.root_path, file_path))
+            
+            new_macro = Macro(name=name, description=description, price=price, file_path=file_path)
+            db.session.add(new_macro)
+            db.session.commit()
+            
+            flash('Macro added successfully!')
+            return redirect(url_for('admin'))
     
     return render_template('add_macro.html')
 
