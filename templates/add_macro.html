@@ -13,11 +13,8 @@
             <div class="card-body">
                 <form method="POST" enctype="multipart/form-data">
                     <div class="mb-3">
-                        <label for="macro_file" class="form-label">Macro File</label>
-                        <input type="file" class="form-control bg-dark text-light border-secondary" id="macro_file" name="macro_file" required>
-                        <div class="form-text text-muted">
-                            Upload your macro file(s) (.xml)
-                        </div>
+                        <label for="name" class="form-label">Macro Name</label>
+                        <input type="text" class="form-control bg-dark text-light border-secondary" id="name" name="name" required>
                     </div>
                     
                     <div class="mb-3">
@@ -31,10 +28,8 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="file_path" class="form-label">File Path</label>
-                        <input type="text" class="form-control bg-dark text-light border-secondary" id="file_path" name="file_path" required>
-                        <div class="form-text text-muted">
-                            In a production environment, this would be a file upload field.
+                        <label for="macro_file" class="form-label">Macro File</label>
+                        <input type="file" class="form-control bg-dark text-light border-secondary" id="macro_file" name="macro_file" required>
                         </div>
                     </div>
                     
