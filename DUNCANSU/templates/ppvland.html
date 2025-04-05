@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live TV</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #1a1a1a;
+            color: #f4f4f4;
+        }
+
+        body.dark-mode header {
+            background-color: #121212;
+        }
+
+        body.dark-mode .channel {
+            background-color: #171717;
+            color: #f4f4f4;
+        }
+
+        body.dark-mode .channel-name {
+            background-color: #171717;
+        }
+
+        body.dark-mode .watch-button {
+            background-color: #171717;
+        }
+
+        body.dark-mode .watch-button:hover {
+            background-color: #171717;
+        }
+
+        /* Header */
+        header {
+            background-color: #007bff;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: #fff;
+        }
+
+        /* Container */
+        .container {
+            padding: 20px;
+        }
+
+        /* Channel Card */
+        .channel {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 100%;  /* Make it responsive */
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            min-height: 350px;  /* Set a minimum height */
+            text-align: center;  /* Align content inside */
+        }
+
+        .channel:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Channel Image */
+        .channel img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+        }
+
+        /* Channel Name */
+        .channel-name {
+            padding: 15px;
+            background-color: #171717;
+            color: #ffffff;
+            font-size: 1.2rem;
+            text-align: left;  /* Align content inside */
+        }
+        
+
+        /* Watch Button */
+        .watch-button {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #171717;
+            color: #ffffff;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: left;  /* Align content inside */
+        }
+
+        .watch-button:hover {
+            background-color: #171717;
+        }
+
+        #categorybuttons {
+            display: none;
+        }   
+
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="/">
+                    <img src="/static/dcn%20sports.png" alt="Archie's Sports Streams" width="250">
+                </a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ml-auto" id="categorybuttons"></ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div id="categories"></div>
+        <div id="livecards" class="row"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function loadContent() {
+    try {
+        const ulElement = document.getElementById('categorybuttons');
+        fetch("https://duncansu.miniduncan.net/proxy/streams/", {
+            headers: { "X-FS-Client": "FS WebClient 1.0" }
+        })
+        .then(response => response.json())
+        .then(data => {
+            ulElement.innerHTML = '';
+            document.getElementById("categories").innerHTML = '';
+            document.getElementById("livecards").innerHTML = '';
+
+            let liveNowHtml = '<div id="live-now-container" class="mt-5"><h2>🔴Live Now🔴</h2><div id="live-now" class="row"></div></div>';
+            document.getElementById("categories").innerHTML += liveNowHtml;
+
+            const excludedCategories = ["NFL", "College Football", "Fishtank", "Basketball", "Wrestling"]; // Categories to hide
+
+            if (data.streams.length >= 1) {
+                data.streams.forEach(categoryData => {
+                    let categoryName = categoryData.category;
+
+                    // Skip excluded categories
+                    if (excludedCategories.includes(categoryName)) {
+                        return;
+                    }
+
+                    let alwaysLive = categoryData.always_live;
+                    let streams = categoryData.streams;
+                    let categoryId = categoryData.id;
+
+                    // Add category button to navbar
+                    const liElement = document.createElement('li');
+                    liElement.className = 'nav-item';
+                    const aElement = document.createElement('a');
+                    aElement.className = 'nav-link';
+                    aElement.href = `#${categoryId}`;
+                    aElement.textContent = categoryName;
+                    liElement.appendChild(aElement);
+                    ulElement.appendChild(liElement);
+
+                    // Add category section
+                    let categoryHtml = `
+                        <div id="${categoryId}-container" class="mt-5">
+                            <h2 class="m-0">${categoryName}`;
+                    if (alwaysLive == 1) {
+                        categoryHtml += ` <span class="badge bg-success">24/7</span>`;
+                    }
+                    categoryHtml += `</h2><div id="${categoryId}" class="row"></div></div>`;
+                    document.getElementById("categories").innerHTML += categoryHtml;
+
+                    // Process streams
+                    streams.forEach(stream => {
+
+    const twentyMinutesInSeconds = 20 * 60;
+    const isLive = stream.starts_at - twentyMinutesInSeconds <= Math.floor(Date.now() / 1000);
+    const startTime = stream.starts_at * 1000;
+    const currentTime = Date.now();
+    const countdown = startTime > currentTime ? getCountdown(startTime) : '';
+
+    let livecounter = isLive 
+        ? `<span class="text-danger"><strong>●</strong></span> ${stream.viewers}`
+        : `<span class="text-muted countdown" data-start-time="${startTime}">${countdown}</span>`;
+
+    let streamHtml = `
+        <div class="col-md-4 mb-3">
+            <div class="channel">
+                <img src="${stream.poster}" alt="${stream.name}">
+                <div class="channel-name">${stream.name}</div>
+                <div class="channel-footer">
+                    <a href="#" class="watch-button" id="watch-${stream.id}">Loading...</a>
+                    <a href="#" class="watch-button mt-2" id="watch-proxy-${stream.id}">Loading...</a>
+                    <div class="mt-2">${livecounter}</div>
+                </div>
+            </div>
+        </div>
+
+    `;
+
+    // Place stream in appropriate section
+    if (isLive && alwaysLive != 1) {
+        document.getElementById("live-now").innerHTML += streamHtml;
+    } else if (alwaysLive != 1) {
+        document.getElementById(categoryId).innerHTML += streamHtml;
+    }
+
+    // Fetch the m3u8 link for the stream
+    if (isLive) {
+        fetch(`https://duncansu.miniduncan.net/proxy/streams/${stream.id}`, {
+            headers: { "X-FS-Client": "FS WebClient 1.0" }
+        })
+        .then(response => response.json())
+        .then(streamData => {
+            const watchButton = document.getElementById(`watch-${stream.id}`);
+            const watchButtonProxy = document.getElementById(`watch-proxy-${stream.id}`);
+            if (streamData.data.m3u8) {
+                const updatedM3U8 = streamData.data.m3u8.replace('index', 'index');
+                const proxiedM3U8 = `https://proxy.miniduncan.net?url=${encodeURIComponent(updatedM3U8)}&data=UmVmZXJlcj0gaHR0cHM6Ly9wcHYubGFuZA%3D%3D`
+                watchButton.href = `https://duncansu.miniduncan.net/play/${encodeURIComponent(updatedM3U8)}`;
+                watchButtonProxy.href = `https://duncansu.miniduncan.net/play/${encodeURIComponent(proxiedM3U8)}`;
+                watchButton.textContent = streamData.data.tag;
+                watchButtonProxy.textContent = "PROXY";
+            } else {
+                watchButton.textContent = "Unavailable";
+                watchButtonProxy.textContent = "Unavailable";
+            }
+        })
+        .catch(error => {
+            console.error(`Error fetching m3u8 for stream ${stream.id}: `, error);
+            const watchButton = document.getElementById(`watch-${stream.id}`);
+            const watchButtonProxy = document.getElementById(`watch-${stream.id}`);
+            watchButton.textContent = "Error";
+            watchButtonProxy.textContent = "Error";
+        });
+    }
+});
+
+
+                    // Remove empty categories
+                    if (document.getElementById(categoryId).innerHTML === '') {
+                        document.getElementById(`${categoryId}-container`).remove();
+                    }
+                });
+            } else {
+                document.getElementById("livecards").innerHTML += '<p>No streams are live right now. Scroll down to see what\'s on later.</p>';
+            }
+        })
+        .catch(error => console.error("Error fetching streams: ", error));
+    } catch (err) {
+        console.error("Error in loadContent: ", err);
+    }
+}
+
+function getCountdown(targetTime) {
+    const now = Date.now();
+    const difference = targetTime - now;
+
+    if (difference <= 0) {
+        return "Live Now!";
+    }
+
+    const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+    if (days > 0) {
+        return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+    }
+
+    return `${hours}h ${minutes}m ${seconds}s`;
+}
+
+function updateCountdowns() {
+    const countdownElements = document.querySelectorAll('.countdown');
+    countdownElements.forEach(element => {
+        const startTime = parseInt(element.getAttribute('data-start-time'));
+        element.textContent = getCountdown(startTime);
+    });
+}
+
+window.onload = function() {
+    loadContent();
+    setInterval(updateCountdowns, 1000); // Update countdowns every second
+    setInterval(loadContent, 120000); // Refresh data every 60 seconds
+};
+
+
+    </script>
+    
+    
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <footer style="text-align: center; padding: 10px; background-color: #f1f1f1;">
+        <a href="/ppvland" style="text-decoration: none; color: #007bff; font-weight: bold;">
+            Click here for backup links
+        </a>
+    </footer>    
+
+    
+
+    <script>
+        // Dark Mode Toggle Script
+        const toggleButton = document.getElementById('darkModeToggle');
+        const darkModePreference = localStorage.getItem('darkMode') === 'enabled';
+
+        if (darkModePreference) {
+            document.body.classList.add('dark-mode');
+        }
+
+        toggleButton.addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode ? 'enabled' : 'disabled');
+        });
+    </script>
+</body>
+</html>

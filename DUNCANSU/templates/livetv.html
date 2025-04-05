@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live TV</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #1a1a1a;
+            color: #f4f4f4;
+        }
+
+        body.dark-mode header {
+            background-color: #121212;
+        }
+
+        body.dark-mode .channel {
+            background-color: #333;
+            color: #f4f4f4;
+        }
+
+        body.dark-mode .channel-name {
+            background-color: #007bff;
+        }
+
+        body.dark-mode .watch-button {
+            background-color: #007bff;
+        }
+
+        body.dark-mode .watch-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Header */
+        header {
+            background-color: #007bff;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: #fff;
+        }
+
+        /* Container */
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* Channel Card */
+        .channel {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 340px; /* Increased width */
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .channel:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Channel Image */
+        .channel img {
+            width: 100%;
+            height: 220px; /* Increased height for better proportions */
+            object-fit: contain;
+            border-bottom: 1px solid #ddd;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2); /* Shadow around the image itself */
+            background-color: #ffffff; /* Always white */
+        }
+
+        /* Channel Name */
+        .channel-name {
+            padding: 15px;
+            background-color: #007bff;
+            color: #ffffff;
+            text-align: center;
+            font-size: clamp(1rem, 2vw, 1.5rem); /* Dynamically adjust font size */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            white-space: nowrap; /* Prevent wrapping */
+            overflow: hidden; /* Hide overflow */
+            text-overflow: ellipsis; /* Add ellipsis if the text is too long */
+        }
+
+        .channel-name h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: normal;
+            text-transform: capitalize;
+        }
+
+        /* Footer */
+        .channel-footer {
+            padding: 15px;
+            background-color: #f9f9f9;
+        }
+
+        /* Watch Button */
+        .watch-button {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: #ffffff;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .watch-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Dark Mode Toggle Button */
+        .toggle-dark-mode {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background-color: #007bff;
+            border: none;
+            padding: 10px 20px;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Dark Mode Toggle Button -->
+    <!--button class="toggle-dark-mode" id="darkModeToggle">Toggle Dark Mode</button>-->
+
+    <!-- Header with Navbar -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="/">
+                    <img src="/static/dcn%20sports.png" alt="Archie's Sports Streams" width="250" height="auto" />
+                </a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item active">
+                            <a class="nav-link" href="/">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/matches/football">Football Streams</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <!-- Loop through the channels and display them -->
+        {% for channel in channels %}
+        <div class="channel">
+            <img src="{{ channel.logo }}" alt="{{ channel.name }} Logo">
+            <div class="channel-name">
+                <h2>{{ channel.name }}</h2>
+            </div>
+            <div class="channel-footer">
+                <a href="{{ url_for('live_tv_play', stream_url=channel.url) }}" class="watch-button">Watch Now</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Dark Mode Toggle Script
+        const toggleButton = document.getElementById('darkModeToggle');
+        const darkModePreference = localStorage.getItem('darkMode') === 'enabled';
+
+        if (darkModePreference) {
+            document.body.classList.add('dark-mode');
+        }
+
+        toggleButton.addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode ? 'enabled' : 'disabled');
+        });
+    </script>
+</body>
+</html>

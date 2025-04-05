@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        body.dark-mode {
+            background-color: #181818;
+            color: #f0f2f5;
+        }
+
+        .navbar {
+            padding: 0.1px 15px; /* Slimmed down padding for a slimmer header */
+        }
+
+        .schedule-header {
+            background-color: #ffffff;
+            color: #333;
+            text-align: center;
+            padding: 10px 0;
+            font-size: 2rem;
+            font-weight: bold;
+            border-bottom: 1px solid #ddd; /* Subtle separator */
+        }
+
+        body.dark-mode .schedule-header {
+            background-color: #333;
+            color: #f0f2f5;
+            border-bottom: 1px solid #555;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .category-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            list-style: none;
+            padding: 0;
+        }
+
+        .category-list li {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease;
+        }
+
+        body.dark-mode .category-list li {
+            background-color: #333;
+            color: #f0f2f5;
+        }
+
+        .category-list li:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .category-list a {
+            text-decoration: none;
+            color: #0073e6;
+            font-weight: bold;
+        }
+
+        body.dark-mode .category-list a {
+            color: #4da8da;
+        }
+
+        .category-list a:hover {
+            text-decoration: underline;
+        }
+
+        .dark-mode-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #0073e6;
+            color: #ffffff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .dark-mode-toggle:hover {
+            background-color: #005bb5;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header with Navbar -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="/">
+                    <img src="/static/dcn%20sports.png" alt="Archie's Sports Streams" width="250" height="auto" />
+                </a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/matches/football">Football Streams</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Sports Schedule Header -->
+    <div class="schedule-header">Sports Schedule</div>
+
+    <div class="container">
+        <ul class="category-list">
+            {% for sport in sports %}
+                <li><a href="/matches/{{ sport.id }}">{{ sport.name }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <script>
+        // Check for dark mode preference in localStorage when the page loads
+        const darkModePreference = localStorage.getItem('darkMode') === 'enabled';
+
+        // Apply dark mode if previously enabled
+        if (darkModePreference) {
+            document.body.classList.add('dark-mode');
+        }
+
+        // Dark mode toggle button functionality
+        const toggleButton = document.getElementById('darkModeToggle');
+        toggleButton.addEventListener('click', function() {
+            // Toggle dark mode class
+            document.body.classList.toggle('dark-mode');
+
+            // Save the dark mode preference to localStorage
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode ? 'enabled' : 'disabled');
+        });
+    </script>
+</body>
+</html>

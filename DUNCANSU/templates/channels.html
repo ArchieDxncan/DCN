@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ categ }}</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        /* Default light mode styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .main-menu-header {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #333;
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .search-bar {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .search-bar input[type="text"] {
+            padding: 10px;
+            width: 80%;
+            max-width: 600px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Minimum width for boxes */
+            gap: 20px;
+        }
+
+        .event-item {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: box-shadow 0.3s ease;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .event-item:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .poster-container {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+        }
+
+        .poster-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+
+        .event-info {
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+
+        .event-title {
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .event-time {
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #1a1a1a;
+            color: #f0f0f0;
+        }
+
+        body.dark-mode .main-menu-header {
+            color: #f0f0f0;
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-mode .event-item {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-mode .event-info {
+            background-color: rgba(41, 41, 41, 0.1);
+        }
+
+        body.dark-mode .event-title {
+            color: #f0f0f0;
+        }
+
+        body.dark-mode .event-time {
+            color: #bbb;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="/">
+                    <img src="/static/dcn%20sports.png" alt="Archie's Sports Streams" width="250" height="auto" />
+                  </a>                                                
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item active">
+                            <a class="nav-link" href="/">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/matches/football">Football Streams</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1 class="text-center main-menu-header" style="text-transform: uppercase;">{{ categ }}</h1>
+        <div class="search-bar">
+            <input type="text" placeholder="Search for events..." id="searchInput" onkeyup="filterEvents()">
+        </div>
+
+        <!-- Grid Layout for events -->
+        <div class="grid-container" id="eventGrid">
+            {% if events %}
+                {% for event in events %}
+                    <div class="event-item" 
+                         onclick="window.location.href='/play/{% if event.teams and event.teams.home and event.teams.away %}{{ event.teams.home.name }} vs {{ event.teams.away.name }}{% else %}{{ event.title }}{% endif %}'">
+                        <div class="poster-container">
+                            <img class="poster-image" src="https://streamed.su{{ event.poster }}" alt="Poster Image">
+                        </div>
+
+                        <div class="event-info">
+                            <div class="event-title">
+                                {% if event.teams and event.teams.home and event.teams.away %}
+                                    {{ event.teams.home.name }} vs {{ event.teams.away.name }}
+                                {% else %}
+                                    {{ event.title }}
+                                {% endif %}
+                            </div>
+                            <div class="event-time">{{ event.time }}</div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No events available.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // Check for dark mode preference in localStorage when the page loads
+        const darkModePreference = localStorage.getItem('darkMode') === 'enabled';
+
+        // Apply dark mode if previously enabled
+        if (darkModePreference) {
+            document.body.classList.add('dark-mode');
+        }
+
+        // Dark mode toggle button functionality (just the logic, no button needed)
+        document.addEventListener('DOMContentLoaded', function () {
+            // Automatically load dark mode if it's enabled in localStorage
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode ? 'enabled' : 'disabled');
+        });
+
+        function filterEvents() {
+            const input = document.getElementById('searchInput').value.toLowerCase().trim();
+            const eventGrid = document.getElementById('eventGrid');
+            const events = eventGrid.getElementsByClassName('event-item');
+
+            for (let i = 0; i < events.length; i++) {
+                const titleElement = events[i].getElementsByClassName('event-title')[0];
+
+                if (!titleElement) continue;
+
+                const title = titleElement.innerText.toLowerCase();
+
+                if (title.includes(input)) {
+                    events[i].style.display = '';
+                } else {
+                    events[i].style.display = 'none';
+                }
+            }
+        }
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
